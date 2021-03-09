@@ -4,14 +4,18 @@ import gameobjects.*;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.Random;
 
-public class GameBoard extends JFrame {
+public class GameBoard extends JFrame implements MouseListener {
 
     public GameObject[][] gameObjects;
+    public GameObject clickedObject;
     private Random random;
     private int randomRow;
     private int randomCol;
+    private int totalScoreCounter = 0;
     CustomCollection<GameObject> snakeTiles;
 
     public GameBoard(){
@@ -24,6 +28,7 @@ public class GameBoard extends JFrame {
         this.setSize(800,800);
         this.setDefaultCloseOperation(EXIT_ON_CLOSE);
         this.setVisible(true);
+        this.addMouseListener(this);
     }
 
     /**
@@ -47,6 +52,56 @@ public class GameBoard extends JFrame {
         setFoodOnRandomPositions();
         setObstaclesOnRandomPositions();
         setSnakeTile();
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent e) {
+        int row = this.getBoardDimensionBasedOnCoordinates(e.getY());
+        int col = this.getBoardDimensionBasedOnCoordinates(e.getX());
+
+        if(this.clickedObject != null) {
+            GameObject snake = this.clickedObject;
+
+            if(this.gameObjects[row][col] == null){
+                this.moveGameObject(row, col, snake);
+            }
+
+            if(this.gameObjects[row][col].getId().equals("Food")) {
+                this.moveGameObjectOnFoodTile(row, col, snake);
+                totalScoreCounter += 10;
+                if(totalScoreCounter == 300){
+                    dispose();
+                }
+            }
+            if (this.gameObjects[row][col].getId().equals("Obstacle")){
+                dispose();
+            }
+        }
+        this.repaint();
+
+        if (this.hasBoardObject(row, col)) {
+            this.clickedObject = this.getBoardObject(row, col);
+        }
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
     }
 
     /**
@@ -134,6 +189,41 @@ public class GameBoard extends JFrame {
             GameObject object = this.getBoardObject(row, col);
             object.render(g);
         }
+    }
+
+    /**
+     * Метод за придвижване на змията.
+     * @param row - редът, на който змията трябва да се премести
+     * @param col - колоната, на която змията трябва да се премести
+     * @param snake - фигурата, която ще бъде преместена
+     */
+    private void moveGameObject(int row, int col, GameObject snake) {
+
+        int snakeOriginalRow = snake.getRow();
+        int snakeOriginalCol = snake.getCol();
+
+        snake.move(row, col);
+
+        this.gameObjects[snake.getRow()][snake.getCol()] = this.clickedObject;
+        this.gameObjects[snakeOriginalRow][snakeOriginalCol] = null;
+        this.clickedObject = null;
+    }
+
+    /**
+     * Метод, при извикването на който змията се премества на поле от дъската върху което има храна
+     * и след изяждането й, змията нараства с 1 квадратче.
+     */
+    private void moveGameObjectOnFoodTile(int row, int col, GameObject snake) {
+
+        int snakeOriginalRow = snake.getRow();
+        int snakeOriginalCol = snake.getCol();
+
+        snake.move(row, col);
+
+        this.gameObjects[snake.getRow()][snake.getCol()] = this.clickedObject;
+        this.gameObjects[snakeOriginalRow][snakeOriginalCol] = new Snake(snakeOriginalRow, snakeOriginalCol);
+        this.snakeTiles.add(this.gameObjects[snakeOriginalRow][snakeOriginalCol]);
+        this.clickedObject = null;
     }
 
     /**
