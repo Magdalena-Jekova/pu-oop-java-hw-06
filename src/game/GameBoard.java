@@ -70,10 +70,12 @@ public class GameBoard extends JFrame implements MouseListener {
                 this.moveGameObjectOnFoodTile(row, col, snake);
                 totalScoreCounter += 10;
                 if(totalScoreCounter == 300){
+                    Modal.show(this, "Message", "You are a winner!");
                     dispose();
                 }
             }
             if (this.gameObjects[row][col].getId().equals("Obstacle")){
+                Modal.show(this, "Message", "Game over!");
                 dispose();
             }
         }
